@@ -303,7 +303,7 @@ void setsettingscreen(void)
    
   
    // 2. Zeile
-   posregister[0][0] =  itemtab[0] |   (2 << 8); //Modellname
+   posregister[0][0] =  itemtab[0] |    (2 << 8); //Modellname
    posregister[0][1] =  itemtab[0] |    (2 << 8); //
 
    posregister[0][2] =  itemtab[5] |    (3 << 8); // settingtext
@@ -1125,7 +1125,7 @@ uint8_t update_screen(void)
          
      //    display_trimmanzeige_horizontal (4+OFFSET_6_UHR,3, 4,-15);
          
-         display_trimmanzeige_vertikal (52+OFFSET_6_UHR,6, 4,vertikaltrimm);
+ //        display_trimmanzeige_vertikal (52+OFFSET_6_UHR,6, 4,vertikaltrimm);
          
       }break;
          

@@ -173,18 +173,18 @@ volatile    uint8_t task_outdata=0; // Taskdata an RC_PPM
 // Mark Screen
 
 //#define CLOCK_DIV 15 // timer0 1 Hz bei Teilung /4 in ISR 16 MHz
-#define CLOCK_DIV 8 // timer0 1 Hz bei Teilung /4 in ISR 8 MHz
+#define CLOCK_DIV 15 // timer0 1 Hz bei Teilung /4 in ISR 8 MHz
 
 
 
 volatile uint16_t                TastaturCount=0;
-volatile uint16_t                manuellcounter=0; // Countr fuer Timeout
+volatile uint16_t                manuellcounter=0; // Counter fuer Timeout
 volatile uint8_t                 startcounter=0; // timeout-counter beim Start von Settings, schneller als manuellcounter. Ermoeglicht Dreifachklick auf Taste 5
 volatile uint8_t                 settingstartcounter=0; // Counter fuer Klicks auf Taste 5
 volatile uint16_t                mscounter=0; // Counter fuer ms in timer-ISR
-volatile uint16_t TastenStatus=0;
-volatile uint16_t Tastencount=0;
-volatile uint16_t Tastenprellen=0x01F;
+volatile uint16_t                TastenStatus=0;
+volatile uint16_t                Tastencount=0;
+volatile uint16_t                Tastenprellen=0x01F;
 volatile uint8_t                 Taste=0;
 
 volatile uint16_t tastentransfer=0;
@@ -2364,7 +2364,7 @@ int main (void)
          if (!(substatus & (1<<TASTATUR_READ))) // Bit noch nicht gesetzt, nur einmal in Zyklus
          {
             //OSZI_A_LO;
-            //if (mscounter%2)
+            if (mscounter%2)
             {
                
                
@@ -3856,87 +3856,7 @@ int main (void)
 		
 		//lcd_gotoxy(16,0);
       //lcd_putint(StepCounterA & 0x00FF);
-/*
-		if (!(TASTENPIN & (1<<E_TASTE0))) // Taste 0
-		{
-			//lcd_gotoxy(8,1);
-			//lcd_puts("T0 Down\0");
-			
-			if (!(TastenStatus & (1<<E_TASTE0))) //Taste 0 war noch nicht gedrueckt
-			{
-				//RingD2(5);
-				TastenStatus |= (1<<E_TASTE0);
-				
-				Tastencount=0;
-				//lcd_gotoxy(0,1);
-				//lcd_puts("P0 \0");
-				//lcd_putint(TastenStatus);
-				//delay_ms(800);
-			}
-			else
-			{
-	
-				Tastencount +=1;
-				//lcd_gotoxy(7,1);
-				//lcd_puts("TC \0");
-				//lcd_putint(Tastencount);
-				
-				if (Tastencount >= Tastenprellen)
-				{
-               
-					Tastencount=0;
-               if (TastenStatus & (1<<E_TASTE0))
-               {
-                  //sendbuffer[0]=loopcount1;
-                  //sendbuffer[1]=0xAB;
-                  //lcd_gotoxy(2,1);
-                  //lcd_putc('1');
-                  
-                  //usb_rawhid_send((void*)sendbuffer, 50);
-               }
-					TastenStatus &= ~(1<<E_TASTE0);
-               //lcd_gotoxy(3,1);
-               //lcd_puts("ON \0");
-               //delay_ms(400);
-               //lcd_gotoxy(3,1);
-               // lcd_puts("  \0");
-               //lcd_putint(TastenStatus);
-               
-               
-				}
-			}//else
-			
-		}	// Taste 0
-		
-		if (!(TASTENPIN & (1<<E_TASTE1))) // Taste 1
-		{
-			//lcd_gotoxy(12,1);
-			//lcd_puts("T1 Down\0");
-			
-			if (! (TastenStatus & (1<<E_TASTE1))) //Taste 1 war nicht nicht gedrueckt
-			{
-				TastenStatus |= (1<<E_TASTE1);
-				Tastencount=0;
-				//lcd_gotoxy(3,1);
-				//lcd_puts("P1 \0");
-				//lcd_putint(Servoimpulsdauer);
-				//delay_ms(800);
-			}
-			else
-			{
-				//lcd_gotoxy(3,1);
-				//lcd_puts("       \0");
-				
-				Tastencount +=1;
-				if (Tastencount >= Tastenprellen)
-				{
-					Tastencount=0;
-					TastenStatus &= ~(1<<E_TASTE1);
-				}
-			}//	else
-			
-		} // Taste 1
- */
+
 		// MARK:  Tastatur ADC
 		/* ******************** */
 		//		initADC(TASTATURPIN);
@@ -3955,6 +3875,8 @@ int main (void)
          if (adcswitch %2)
          {
             Tastenwert=adc_read(TASTATURPIN)>>2;
+            //Tastenwert=adc_read8Bit(TASTATURPIN);
+            
          }
          else
          {
@@ -3963,10 +3885,10 @@ int main (void)
          //
          OSZI_B_HI;
          
-      //   if (loopcount1%2==0)
+         if (loopcount1%2==0)
          {
-          //  lcd_gotoxy(0,1);
-          //  lcd_putint(Tastenwert);
+           // lcd_gotoxy(0,2);
+          //lcd_putint(Tastenwert);
            // lcd_putc(' ');
          }
  // MARK:  Tastatur
@@ -4009,7 +3931,7 @@ int main (void)
             */
             TastaturCount++;
             
-            if (prellcounter>150)
+            if (prellcounter>200)
             {
                //lcd_gotoxy(6,0);
               // lcd_putint2(Tastenindex);
@@ -4040,6 +3962,7 @@ int main (void)
                //lcd_putc('*');
                TastaturCount=0;
                Tastenwert=0x00;
+ 
                lcd_gotoxy(18,1);
                lcd_putint2(Taste);
                programmstatus |= (1<<UPDATESCREEN);
@@ -5215,6 +5138,7 @@ int main (void)
 #pragma mark Taste 5
                      switch (curr_screen)
                      {
+#pragma mark HOMESCREEN
                         case HOMESCREEN:
                         {
                            
@@ -6970,10 +6894,10 @@ int main (void)
             
             if (trimmprellcounter>150)
             {
-               //lcd_gotoxy(6,0);
-               //lcd_putint(Trimmtastenwert);
-               //lcd_putc(' ');
-               //lcd_putint2(Trimmtastenindex);
+               lcd_gotoxy(6,0);
+               lcd_putint(Trimmtastenwert);
+               lcd_putc(' ');
+               lcd_putint2(Trimmtastenindex);
                Trimmtaste = Trimmtastenindex;
                trimmstatus = Trimmtastenindex;
                trimmprellcounter=0;

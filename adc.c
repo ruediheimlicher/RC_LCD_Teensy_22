@@ -95,6 +95,30 @@ int16_t adc_read(uint8_t derKanal)
    return result;
 }
 
+uint8_t adc_read8Bit(uint8_t derKanal)
+{
+   uint8_t result = 0;
+   uint8_t low, i ;
+   ADCSRA = (1<<ADEN) | ADC_PRESCALER;             // enable ADC  f/64
+   
+   ADCSRB = (1<<ADHSM) | (derKanal & 0x20);             // high speed mode
+   //ADMUX = aref | (derKanal & 0x1F);                    // configure mux input
+   
+   ADMUX = ADC_REF_POWER | (derKanal & 0x1F); // Vcc als Referenz
+   
+   
+   for(i=0;i<4;i++)
+   {
+      ADCSRA = (1<<ADEN) | (1<<ADPS2) | (1<<ADPS0) | (1<<ADSC); // start the conversion
+      while (ADCSRA & (1<<ADSC)) ;                    // wait for result
+                                    
+      result += ADCL; // nur LSB
+   }
+   result /= 4;                     // Summe durch vier teilen = arithm. Mittelwert
+   return result;
+
+}
+
 
 uint16_t readKanal(uint8_t derKanal) //Unsere Funktion zum ADC-Channel aus lesen
 {
