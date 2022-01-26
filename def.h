@@ -190,7 +190,7 @@
 #define TASTE_R_M    245
 
 
-#define MANUELLTIMEOUT	100 // Loopled-counts bis Manuell zurueckgesetzt wird. 50: ca. 30s
+#define MANUELLTIMEOUT	10 // Loopled-counts bis Manuell zurueckgesetzt wird. 50: ca. 30s
 
 
 //#define MITTE_TASK         0x01 // Mitte lesen

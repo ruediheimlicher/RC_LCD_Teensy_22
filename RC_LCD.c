@@ -814,9 +814,22 @@ ISR (TIMER0_OVF_vect)
       if (programmstatus & (1<<SETTINGWAIT))
       {
          startcounter++;
-         
+         /*
+         if (startcounter > 5) // Irrtum, kein Umschalten
+         {
+           // lcd_gotoxy(0,1);
+            //lcd_putc('X');
+            programmstatus &= ~(1<< SETTINGWAIT);
+            settingstartcounter=0;
+            startcounter=0;
+            manuellcounter = 0;
+         }
+          */
       }
-      
+      else
+      {
+         //startcounter = 0;
+      }
       if (programmstatus & (1<<MS_DIV))
       {
          
@@ -2386,6 +2399,16 @@ int main (void)
          lcd_gotoxy(14,0);
          lcd_puthex(curr_screen);
          lcd_putc('*');
+         lcd_gotoxy(0,1);
+         lcd_putint(manuellcounter);
+         lcd_putc(' ');
+         lcd_putint(startcounter);
+         lcd_putc(' ');
+         lcd_putint(settingstartcounter);
+         lcd_putc(' ');
+         lcd_puthex(programmstatus);
+         lcd_putc(' ');
+         
          if (loopcount1 && (loopcount1%2 == 0)) // nach etwas Zeit soll Master die Settings lesen
          {
             
@@ -2514,7 +2537,7 @@ int main (void)
 			if ((manuellcounter > MANUELLTIMEOUT) )
 			{
 				{
-               manuellcounter=0;
+               manuellcounter=1;
                
                if (curr_screen) // nicht homescreen
                {
@@ -2532,7 +2555,12 @@ int main (void)
                   sethomescreen();
                   
                }
-               
+              else 
+              {
+                 programmstatus &= ~(1<< SETTINGWAIT);
+                 startcounter=0;
+                 settingstartcounter=0;
+              }
 				}
 				//
 			}
@@ -3931,7 +3959,7 @@ int main (void)
             */
             TastaturCount++;
             
-            if (prellcounter>200)
+            if (prellcounter>250)
             {
                //lcd_gotoxy(6,0);
               // lcd_putint2(Tastenindex);
@@ -5144,32 +5172,36 @@ int main (void)
                            
                				//lcd_putint2(startcounter);
                            //lcd_putc('*');
-                           if ((startcounter == 0)&& (manuellcounter)) // Settings sind nicht aktiv
+                           if ((startcounter == 0) && (manuellcounter)) // Settings sind nicht aktiv
                            {
-                              //lcd_gotoxy(0,1);
-                              //lcd_putc('A');
+                             // lcd_gotoxy(0,2);
+                             // lcd_putc('A');
+                              {
                               programmstatus |= (1<< SETTINGWAIT);
                               settingstartcounter=1;
-                              manuellcounter = 0;
+                              manuellcounter = 1;
+                              }
                            }
-                           else if (startcounter > 15) // Irrtum, kein Umschalten
+                           else 
+                              if (startcounter > 3) // Irrtum, kein Umschalten
                            {
-                             // lcd_gotoxy(0,1);
-                              //lcd_putc('X');
+                             //lcd_gotoxy(0,2);
+                             // lcd_putc('X');
                               programmstatus &= ~(1<< SETTINGWAIT);
                               settingstartcounter=0;
-                              startcounter=0;
-                              manuellcounter = 0;
+                             startcounter=0;
+                              manuellcounter = 1;
                            }
                            else
                            {
                               if ((programmstatus & (1<< SETTINGWAIT))&& (manuellcounter)) // Umschaltvorgang noch aktiv
                               {
-                                 //lcd_gotoxy(0,1);
+                                // lcd_gotoxy(0,2);
+                                // lcd_putc('G');
                                  //lcd_putc('A'+settingstartcounter);
                                  //lcd_putint2(settingstartcounter);
                                  settingstartcounter++; // counter fuer klicks
-                                 if (settingstartcounter > 2)
+                                 if (settingstartcounter == 3)
                                  {
                                     //lcd_gotoxy(16,1);
                                     //lcd_putc('S');
@@ -5190,9 +5222,9 @@ int main (void)
                                     last_cursorzeile=0;
                                     blink_cursorpos=0xFFFF;
                                     
-                                    
+                                    manuellcounter = 1;
                                  } // if settingcounter <
-                                 manuellcounter = 0;
+                                 //manuellcounter = 0;
                               }
                            }
                         }break;
@@ -5913,6 +5945,7 @@ int main (void)
                               blink_cursorpos = 0xFFFF;
                               
                               
+                              
                               // curr_screen=HOMESCREEN;
                               sethomescreen();
                               
@@ -6185,12 +6218,16 @@ int main (void)
                      }
                      else // schon homescreen, motorzeit reset
                      {
+                        startcounter = 0;
                         if (manuellcounter) // kurz warten
                         {
                            programmstatus &= ~(1<<MOTOR_ON);
                            motorsekunde=0;
                            motorminute=0;
                            manuellcounter=0; // timeout zuruecksetzen
+                           //lcd_gotoxy(0,2);
+                           //lcd_putc('-');
+                           
                         }
                      }
                   }break;
