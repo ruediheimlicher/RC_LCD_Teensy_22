@@ -2560,6 +2560,10 @@ int main (void)
                  programmstatus &= ~(1<< SETTINGWAIT);
                  startcounter=0;
                  settingstartcounter=0;
+                 lcd_gotoxy(0,2);
+                 lcd_putc(' ');
+                 lcd_putc(' ');
+
               }
 				}
 				//
@@ -5174,37 +5178,41 @@ int main (void)
                            //lcd_putc('*');
                            if ((startcounter == 0) && (manuellcounter)) // Settings sind nicht aktiv
                            {
-                             // lcd_gotoxy(0,2);
-                             // lcd_putc('A');
+                              lcd_gotoxy(0,2);
+                              lcd_putc(' ');
+                              lcd_putc(' ');
                               {
                               programmstatus |= (1<< SETTINGWAIT);
                               settingstartcounter=1;
                               manuellcounter = 1;
                               }
                            }
+                           /*
                            else 
-                              if (startcounter > 3) // Irrtum, kein Umschalten
+                           if (startcounter > 3) // Irrtum, kein Umschalten
                            {
-                             //lcd_gotoxy(0,2);
-                             // lcd_putc('X');
+                             lcd_gotoxy(0,2);
+                             lcd_putc(' ');
+                              lcd_putc(' ');
                               programmstatus &= ~(1<< SETTINGWAIT);
                               settingstartcounter=0;
                              startcounter=0;
                               manuellcounter = 1;
                            }
+                            */
                            else
                            {
                               if ((programmstatus & (1<< SETTINGWAIT))&& (manuellcounter)) // Umschaltvorgang noch aktiv
                               {
-                                // lcd_gotoxy(0,2);
-                                // lcd_putc('G');
+                                lcd_gotoxy(0,2);
+                                lcd_putc('G');
                                  //lcd_putc('A'+settingstartcounter);
                                  //lcd_putint2(settingstartcounter);
                                  settingstartcounter++; // counter fuer klicks
                                  if (settingstartcounter == 3)
                                  {
-                                    //lcd_gotoxy(16,1);
-                                    //lcd_putc('S');
+                                    lcd_gotoxy(1,2);
+                                    lcd_putc('3');
                                     programmstatus &= ~(1<< SETTINGWAIT);
                                     programmstatus |=(1<<UPDATESCREEN);
                                     settingstartcounter=0;
@@ -5227,6 +5235,18 @@ int main (void)
                                  //manuellcounter = 0;
                               }
                            }
+                           if (startcounter > 3) // Irrtum, kein Umschalten
+                           {
+                             lcd_gotoxy(0,2);
+                             lcd_putc(' ');
+                              lcd_putc('*');
+                              programmstatus &= ~(1<< SETTINGWAIT);
+                              settingstartcounter=0;
+                             startcounter=0;
+                              manuellcounter = 1;
+                           }
+
+                           
                         }break;
                            
                         case SAVESCREEN:
@@ -6219,15 +6239,17 @@ int main (void)
                      else // schon homescreen, motorzeit reset
                      {
                         startcounter = 0;
+                        lcd_gotoxy(0,2);
+                        lcd_putc(' ');
+                        lcd_putc(' ');
+
                         if (manuellcounter) // kurz warten
                         {
                            programmstatus &= ~(1<<MOTOR_ON);
                            motorsekunde=0;
                            motorminute=0;
                            manuellcounter=0; // timeout zuruecksetzen
-                           //lcd_gotoxy(0,2);
-                           //lcd_putc('-');
-                           
+                            
                         }
                      }
                   }break;
