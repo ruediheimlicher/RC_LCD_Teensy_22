@@ -191,14 +191,14 @@
 #define TASTE_R_M    245
 
 
-#define MANUELLTIMEOUT	10 // Loopled-counts bis Manuell zurueckgesetzt wird. 50: ca. 30s
+#define MANUELLTIMEOUT	16 // Loopled-counts bis Manuell zurueckgesetzt wird. 50: ca. 30s
 
 #define ADCTIMEOUT   250
 
 //#define MITTE_TASK         0x01 // Mitte lesen
 //#define KANAL_TASK         0x02 // Level und Expo lesen
 //#define MIX_TASK           0x03 // Mix lesen
-
+#define LEDON           3
 
 #define MS_DIV          4	// Bit 4 von Status. Gesetzt wenn 1s abgelaufen
 #define UPDATESCREEN    5 // Bit in status wird gesetzt wenn eine Taste gedrueckt ist, reset wenn update ausgefuehrt

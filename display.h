@@ -173,6 +173,8 @@ uint8_t display_kanaldiagramm (uint8_t char_x, uint8_t char_y, uint8_t level, ui
 uint8_t display_kanaldiagramm_var(uint8_t char_x0, uint8_t char_y0, uint8_t level, uint8_t expo, uint8_t typ );
 void display_cursorweg(void);
 
+void display_set_LED(uint8_t state);
+
 
 
 

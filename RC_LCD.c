@@ -2450,12 +2450,15 @@ int main (void)
          lcd_gotoxy(16,0);
          lcd_puts("SC");
          lcd_puthex(curr_screen);
-         /*
+        
          lcd_putc('*');
          lcd_gotoxy(0,1);
          lcd_putint(manuellcounter);
+          
+          
          lcd_putc(' ');
          lcd_putint(startcounter);
+         
          lcd_putc(' ');
          lcd_putint(settingstartcounter);
          lcd_putc(' ');
@@ -2464,7 +2467,7 @@ int main (void)
  
          lcd_gotoxy(6,2);
          lcd_putint12(tastaturcounter);
-
+         /*
          
          lcd_gotoxy(0,3);
          lcd_putint12(tastenbitstatus );
@@ -2601,6 +2604,8 @@ int main (void)
 			if ((manuellcounter > MANUELLTIMEOUT) )
 			{
 				{
+               programmstatus &= ~(1<< LEDON);
+               display_set_LED(0);
                manuellcounter=1;
                
                if (curr_screen) // nicht homescreen
@@ -4005,6 +4010,9 @@ int main (void)
                   if (tastaturcounter == ADCTIMEOUT)
                   {
                      Tastenindex = Tastenwahl(Tastenwert); // taste pressed
+                     programmstatus |= (1<< LEDON);
+                     display_set_LED(1);
+                     
                   }
                }
             }

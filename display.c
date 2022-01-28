@@ -2676,7 +2676,7 @@ void display_soft_init(void)
    SOFT_SPI_PORT &= ~(1<<DOG_DATA);
 
    SOFT_SPI_DDR |= (1<<DOG_PWM);
- //  SOFT_SPI_PORT &= ~(1<<DOG_PWM);
+   //SOFT_SPI_PORT &= ~(1<<DOG_PWM);
    SOFT_SPI_PORT |= (1<<DOG_PWM);
 
 	_delay_us(1);
@@ -2692,6 +2692,17 @@ void display_soft_init(void)
 	return;
 }
 
+void display_set_LED(uint8_t state)
+{
+   if (state)
+   {
+      SOFT_SPI_PORT |= (1<<DOG_PWM);
+   }
+   else
+   {
+      SOFT_SPI_PORT &= ~(1<<DOG_PWM);
+   }
+}
 //##############################################################################################
 //Go to x,y
 //
