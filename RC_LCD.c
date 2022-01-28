@@ -175,6 +175,52 @@ volatile    uint8_t task_outdata=0; // Taskdata an RC_PPM
 //#define CLOCK_DIV 15 // timer0 1 Hz bei Teilung /4 in ISR 16 MHz
 #define CLOCK_DIV 15 // timer0 1 Hz bei Teilung /4 in ISR 8 MHz
 
+#pragma mark ganssle
+typedef struct
+{
+   uint8_t pin;
+   uint16_t tasten_history;
+   uint8_t pressed;
+   long lastDebounceTime;
+}tastenstatus;
+
+//long lastDebounceTime = 0;  // the last time the output pin was toggled
+long debounceDelay = 20;    // the debounce time; increase if the output flickers
+
+tastenstatus tastenstatusarray[12] = {}; 
+volatile uint16_t tastenbitstatus = 0; // bits fuer tasten
+//uint8_t tastenbitstatus = 0; // bits fuer tasten
+
+volatile uint8_t tastencode = 0; // status der Tasten vom SPI-SR
+
+// http://www.ganssle.com/debouncing-pt2.htm
+#define MAX_CHECKS 16
+volatile uint16_t last_debounced_state = 0;
+volatile uint16_t debounced_state = 0;
+volatile uint16_t state[MAX_CHECKS] = {0};
+
+volatile uint16_t debounceindex = 0;
+void debounce_switch(uint16_t port)
+{
+   uint8_t i,j;
+   state[debounceindex] = port;
+   ++debounceindex;
+   j = 0xFF;
+   for (i=0;i<MAX_CHECKS;i++)
+   {
+      j=(j & state[i]);
+   }
+   debounced_state = j;
+   
+   if (debounceindex >= MAX_CHECKS)
+   {
+      debounceindex = 0;
+   }
+   
+}
+
+
+// end ganssle
 
 
 volatile uint16_t                TastaturCount=0;
@@ -391,8 +437,12 @@ uint8_t  EEMEM speicherstopminute;
 volatile uint16_t batteriespannung =0;
 
 volatile uint16_t Tastenwert=0;
+
 volatile uint16_t Trimmtastenwert=0;
 volatile uint8_t adcswitch=0;
+volatile uint16_t lastTastenwert=0;
+volatile int16_t Tastenwertdiff=0;
+volatile uint16_t tastaturcounter=0;
 
 // MARK: Proto
 uint8_t eeprombyteschreiben(uint8_t code, uint16_t writeadresse,uint8_t eeprom_writedatabyte);
@@ -785,7 +835,7 @@ ISR (TIMER0_OVF_vect)
 {
    
    mscounter++;
-
+   //OSZI_A_TOGG;
    /*
    tscounter++;
    
@@ -2379,7 +2429,7 @@ int main (void)
             //OSZI_A_LO;
             if (mscounter%2)
             {
-               
+               //debounce_switch(tastenbitstatus);
                
                substatus |= (1<< TASTATUR_READ);
                
@@ -2396,8 +2446,11 @@ int main (void)
 			loopcount0=0;
 			loopcount1+=1;
 			LOOPLEDPORT ^=(1<<LOOPLED);
-         lcd_gotoxy(14,0);
+         
+         lcd_gotoxy(16,0);
+         lcd_puts("SC");
          lcd_puthex(curr_screen);
+         /*
          lcd_putc('*');
          lcd_gotoxy(0,1);
          lcd_putint(manuellcounter);
@@ -2408,7 +2461,17 @@ int main (void)
          lcd_putc(' ');
          lcd_puthex(programmstatus);
          lcd_putc(' ');
+ 
+         lcd_gotoxy(6,2);
+         lcd_putint12(tastaturcounter);
+
          
+         lcd_gotoxy(0,3);
+         lcd_putint12(tastenbitstatus );
+         lcd_putc('*');
+         lcd_putint12(debounced_state);
+         lcd_putc('*');
+          */
          if (loopcount1 && (loopcount1%2 == 0)) // nach etwas Zeit soll Master die Settings lesen
          {
             
@@ -2458,6 +2521,7 @@ int main (void)
                }
                else
                {
+                  
                   lcd_gotoxy(0,1);
                   lcd_puthex(sendbuffer[32]);
                   lcd_putc(' ');
@@ -2561,6 +2625,7 @@ int main (void)
                  startcounter=0;
                  settingstartcounter=0;
                  lcd_gotoxy(0,2);
+                 lcd_putc(' ');
                  lcd_putc(' ');
                  lcd_putc(' ');
 
@@ -2928,7 +2993,7 @@ int main (void)
                lcd_puthex(task_outdata);
                lcd_putc('c');
                 */
-               lcd_puthex(out_taskcounter);
+               //lcd_puthex(out_taskcounter);
                
                task_out &= ~(1<<RAM_SEND_PPM_TASK); // Task gesendet, Bit reset
                
@@ -3711,9 +3776,9 @@ int main (void)
                   
                case 0xF7: // GO
                {
-                  lcd_gotoxy(19,1);
-                  lcd_putc('*');
-                  lcd_putc('G');
+                  //lcd_gotoxy(19,1);
+                  //lcd_putc('*');
+                  //lcd_putc('G');
                   masterstatus &= ~(1<<HALT_BIT);
                   MASTER_PORT |= (1<<SUB_BUSY_PIN);
                   abschnittnummer=0;
@@ -3907,15 +3972,8 @@ int main (void)
          if (adcswitch %2)
          {
             Tastenwert=adc_read(TASTATURPIN)>>2;
-            //Tastenwert=adc_read8Bit(TASTATURPIN);
-            
-         }
-         else
-         {
-            Trimmtastenwert=adc_read(TRIMMTASTATURPIN)>>2;
-         }
          //
-         OSZI_B_HI;
+         OSZI_B_HI; // 8 us
          
          if (loopcount1%2==0)
          {
@@ -3927,6 +3985,48 @@ int main (void)
          //
          if (Tastenwert>5)
          {
+            
+            Tastenwertdiff = Tastenwert - lastTastenwert;
+            if (Tastenwert > lastTastenwert)
+            {
+               Tastenwertdiff = Tastenwert - lastTastenwert;
+            }
+            else 
+            {
+               Tastenwertdiff = lastTastenwert - Tastenwert;
+            }
+            lastTastenwert = Tastenwert;
+            
+            if (Tastenwertdiff < 6)
+            {
+               if (tastaturcounter < ADCTIMEOUT)
+               {
+                  tastaturcounter++;
+                  if (tastaturcounter == ADCTIMEOUT)
+                  {
+                     Tastenindex = Tastenwahl(Tastenwert); // taste pressed
+                  }
+               }
+            }
+            else
+            {
+               tastaturcounter = 0;
+            }
+            
+                
+             
+         }
+         else
+         {
+            tastaturcounter = 0;
+            Tastenindex = 0;
+ //           Trimmtastenwert=adc_read(TRIMMTASTATURPIN)>>2;
+         }
+
+            
+            
+            
+            
             /*
              0:											1	2	3
              1:											4	5	6
@@ -3941,19 +4041,27 @@ int main (void)
              
              12: Manuell aus
              */
-            Tastenindex = Tastenwahl(Tastenwert);
+            
+            uint16_t temptaste = (1<<Tastenindex);
+            
+            
+            
+            /*
 
             if ((Tastenindex == lastTastenindex)) // gleiche Taste wie letztes Mal
             {
                prellcounter++;
+              
                
             }
             else // andere Taste oder prellen
             {
+               tastenbitstatus &= ~(1<<lastTastenindex);
+               tastenbitstatus = (1<<Tastenindex);
                lastTastenindex = Tastenindex;
                prellcounter=0;
             }
-            
+            */
             /*
             if (prellcounter>10)
             {
@@ -3963,7 +4071,8 @@ int main (void)
             */
             TastaturCount++;
             
-            if (prellcounter>250)
+           // if (prellcounter>250)
+            if (Tastenindex > 0)
             {
                //lcd_gotoxy(6,0);
               // lcd_putint2(Tastenindex);
@@ -3974,24 +4083,6 @@ int main (void)
                
            //    substatus |= (1<<TASTATUR_OK);
                
-               //lcd_gotoxy(10,1);
-               //lcd_puts("T:\0");
-               //lcd_putint12(Tastenwert);
-               /*
-               lcd_putc(' ');
-               lcd_putc(' ');
-               
-               
-               lcd_gotoxy(18,1);
-               */
-//               Taste=Tastenwahl(Tastenwert);
-               //lcd_putint2(Taste);
-               //lcd_putc(' ');
-               //lcd_gotoxy(0,1);
-               //lcd_putint(TastaturCount);
-              // lcd_putc(' ');
-               //lcd_putint2(Taste);
-               //lcd_putc('*');
                TastaturCount=0;
                Tastenwert=0x00;
  
@@ -4014,12 +4105,12 @@ int main (void)
                   case 1:
                   {
 #pragma mark Taste 1
+  
                      if (manuellcounter)
                      {
                         programmstatus ^= (1<<MOTOR_ON);
                         manuellcounter=0;
-                        
-                     }
+                      }
 
                   }break;
                      
@@ -4721,10 +4812,12 @@ int main (void)
                   case 3: //
                   {
 #pragma mark Taste 3
+
                      if (manuellcounter)
                      {
                         programmstatus ^= (1<<STOP_ON);
                          manuellcounter=0;
+
                      }
                   }break;
                      
@@ -4735,7 +4828,8 @@ int main (void)
                      {
                         case HOMESCREEN: // home
                         {
-                           
+                           //lcd_gotoxy(14,2);
+                          // lcd_puts("*H4*");
                          }break;
                            
                         case SAVESCREEN: // save
@@ -4757,6 +4851,8 @@ int main (void)
                            
                         case SETTINGSCREEN: // Settings
                         {
+                           lcd_gotoxy(14,2);
+                           lcd_puts("*S4*");
                            if (blink_cursorpos == 0xFFFF && manuellcounter) // Kein Blinken
                            {
                               switch(curr_cursorzeile) // zeile
@@ -5173,46 +5269,50 @@ int main (void)
 #pragma mark HOMESCREEN
                         case HOMESCREEN:
                         {
+                          // lcd_gotoxy(14,2);
+                          // lcd_puts("*H5*");
                            
                				//lcd_putint2(startcounter);
                            //lcd_putc('*');
                            if ((startcounter == 0) && (manuellcounter)) // Settings sind nicht aktiv
                            {
-                              lcd_gotoxy(0,2);
-                              lcd_putc(' ');
-                              lcd_putc(' ');
+                              //lcd_gotoxy(0,2);
+                              //lcd_putc('1');
+                              //lcd_putc(' ');
                               {
                               programmstatus |= (1<< SETTINGWAIT);
                               settingstartcounter=1;
                               manuellcounter = 1;
                               }
                            }
-                           /*
+                           
                            else 
                            if (startcounter > 3) // Irrtum, kein Umschalten
                            {
-                             lcd_gotoxy(0,2);
-                             lcd_putc(' ');
-                              lcd_putc(' ');
+                             //lcd_gotoxy(0,2);
+                             //lcd_putc(' ');
+                             // lcd_putc(' ');
                               programmstatus &= ~(1<< SETTINGWAIT);
                               settingstartcounter=0;
                              startcounter=0;
                               manuellcounter = 1;
                            }
-                            */
+                            
                            else
                            {
                               if ((programmstatus & (1<< SETTINGWAIT))&& (manuellcounter)) // Umschaltvorgang noch aktiv
                               {
-                                lcd_gotoxy(0,2);
-                                lcd_putc('G');
+                                //lcd_gotoxy(1,2);
+                                //lcd_putc('G');
                                  //lcd_putc('A'+settingstartcounter);
                                  //lcd_putint2(settingstartcounter);
+                                 //lcd_gotoxy(2,2);
+                                 //lcd_putint1(settingstartcounter);
                                  settingstartcounter++; // counter fuer klicks
                                  if (settingstartcounter == 3)
                                  {
-                                    lcd_gotoxy(1,2);
-                                    lcd_putc('3');
+                                    //lcd_gotoxy(2,2);
+                                    //lcd_putc('3');
                                     programmstatus &= ~(1<< SETTINGWAIT);
                                     programmstatus |=(1<<UPDATESCREEN);
                                     settingstartcounter=0;
@@ -5235,17 +5335,18 @@ int main (void)
                                  //manuellcounter = 0;
                               }
                            }
+                           /*
                            if (startcounter > 3) // Irrtum, kein Umschalten
                            {
-                             lcd_gotoxy(0,2);
-                             lcd_putc(' ');
-                              lcd_putc('*');
+                             lcd_gotoxy(3,2);
+                             lcd_putc('*');
+                             
                               programmstatus &= ~(1<< SETTINGWAIT);
                               settingstartcounter=0;
                              startcounter=0;
                               manuellcounter = 1;
                            }
-
+*/
                            
                         }break;
                            
@@ -5625,7 +5726,8 @@ int main (void)
                      {
                         case HOMESCREEN: // home
                         {
-                           
+                           //lcd_gotoxy(14,2);
+                           //lcd_puts("*H6*");
                         }break;
 
                         case SAVESCREEN: // save
@@ -5949,7 +6051,8 @@ int main (void)
                   {
 #pragma mark Taste 7
                      //manuellcounter=0; // timeout zuruecksetzen
-                     
+                     //lcd_gotoxy(14,2);
+                     //lcd_puts("*7*");
                      if (curr_screen) // nicht homescreen
                      {
                         switch (curr_screen)
@@ -6021,6 +6124,7 @@ int main (void)
                               
                            case SETTINGSCREEN: // Settings
                            {
+                              programmstatus &= ~(1<< SETTINGWAIT);
                               if ((blink_cursorpos == 0xFFFF) && manuellcounter)
                               {
                                  
@@ -6239,10 +6343,14 @@ int main (void)
                      else // schon homescreen, motorzeit reset
                      {
                         startcounter = 0;
+                        /*
                         lcd_gotoxy(0,2);
                         lcd_putc(' ');
                         lcd_putc(' ');
-
+                        lcd_putc(' ');
+                        lcd_gotoxy(14,2);
+                        lcd_puts("*H7*");
+                         */
                         if (manuellcounter) // kurz warten
                         {
                            programmstatus &= ~(1<<MOTOR_ON);
@@ -6262,6 +6370,9 @@ int main (void)
                      {
                         case HOMESCREEN: // home
                         {
+                          // lcd_gotoxy(14,2);
+                          // lcd_puts("*H8*");
+     
                            if (manuellcounter)
                            {
                               display_clear();
@@ -6883,6 +6994,9 @@ int main (void)
                   case 9://set, out wenn auf home
                   {
 #pragma mark Taste 9
+                    // lcd_gotoxy(14,2);
+                    // lcd_puts("*9*");
+
                      if (manuellcounter) // kurz warten
                      {
                         programmstatus &= ~(1<<STOP_ON);
@@ -6914,10 +7028,17 @@ int main (void)
                
                Tastenwert=0;
                Taste=0;
-            }//if TastaturCount
+               Tastenindex = 0;
+               //lcd_gotoxy(14,2);
+               //lcd_puts("   ");
+
+            }//if Tastenindex
             
          } // if Tastenwert > 5
-         
+         else 
+         {
+           
+         }
          // MARK:  Trimmung
          
          if (Trimmtastenwert>5)

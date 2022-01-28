@@ -155,11 +155,12 @@
 // Teensy2 int VCC Tastatur2
 
 #define WERT1    19    // 1 oben  Taste 2
+#define WERT2    30    //  A links oben Taste  1
 #define WERT3    49    // 2 links  Taste 4
 #define WERT4    68    // 3 unten  Taste 8
 #define WERT6    110   // 4 rechts  Taste 6
 #define WERT9    215   // 5 Mitte  Taste 5
-#define WERT2     30    //  A links oben Taste  1
+
 #define WERT5    88       //    B links unten Taste 7
 #define WERT7    139      //   C rechts oben Taste 3
 #define WERT8    168      // D rechts unten Taste 9
@@ -192,6 +193,7 @@
 
 #define MANUELLTIMEOUT	10 // Loopled-counts bis Manuell zurueckgesetzt wird. 50: ca. 30s
 
+#define ADCTIMEOUT   250
 
 //#define MITTE_TASK         0x01 // Mitte lesen
 //#define KANAL_TASK         0x02 // Level und Expo lesen
