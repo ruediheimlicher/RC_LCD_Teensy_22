@@ -981,8 +981,7 @@ void settrimmscreen(void)
    resetRegister();
    blink_cursorpos=0xFFFF;
    
-   
-   
+    
    posregister[0][0] =  itemtab[0] |   (2 << 8); //Vertikal links
    posregister[0][1] =  itemtab[4] |   (2 << 8); //Vertikal rechts
    
@@ -2737,7 +2736,7 @@ void display_clear()
 		{
          if (col%4)
          {
-			display_write_byte(DATA,0x00);
+            display_write_byte(DATA,0x00);
          }
          else
          {

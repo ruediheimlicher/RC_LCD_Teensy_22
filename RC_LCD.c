@@ -454,7 +454,7 @@ void read_eeprom_zeit(void);
 void write_eeprom_zeit(void);
 void write_eeprom_status(void);
 
-
+volatile uint8_t                 usbcounter = 0;
 
 
 /*
@@ -598,6 +598,13 @@ void Master_Init(void)
    
    //OFF_DDR &= ~(1<<OFF_DETECT); // Eingang fuer Analog Comp
 //   OFF_PORT |= (1<<OFF_DETECT); // HI
+   
+   BLINK_DDR |=  (1<<BLINK_LO_PIN); // Ausgang fuer Blink-LED low (-)
+   BLINK_DDR |=  (1<<BLINK_HI_PIN); // Ausgang fuer Blink-LED high (+)
+   BLINK_PORT &= ~(1<<BLINK_LO_PIN);
+   BLINK_PORT |= (1<<BLINK_HI_PIN);
+   
+
 }
 
 void analogcomp_init(void)
@@ -946,7 +953,7 @@ ISR (TIMER0_OVF_vect)
 ISR (PCINT0_vect)
 {
    
-   if(INTERRUPT_PIN & (1<< MASTER_EN_PIN))// LOW to HIGH pin change, Sub ON
+   if(INTERRUPT_PIN & (1<< MASTER_EN_PIN))// LOW to HIGH pin change, Sub ON,  PIN B7
    {
       //OSZI_C_LO;
      
@@ -966,8 +973,8 @@ ISR (PCINT0_vect)
 ISR(INT3_vect) // Interrupt bei USB_ATTACH, rising edge
 {
    
-//   lcd_gotoxy(16,1);
-//   lcd_putc('+');
+   lcd_gotoxy(16,1);
+   lcd_putc('+');
  //  lcd_putint2(laufsekunde);
    
 //   if (!(usb_configured()))
@@ -2345,19 +2352,21 @@ int main (void)
    
 // MARK:  while
 	while (1)
-	{
+   {
       //OSZI_B_LO;
-		//Blinkanzeige
-		loopcount0+=1;
+      //Blinkanzeige
+      loopcount0+=1;
       
       
        if ((usbstatus & (1<<USB_ATTACH_TASK))|| (USB_PIN & (1<<USB_DETECT_PIN))) // USB init
        {
           usbstatus &= ~(1<<USB_ATTACH_TASK);
+          //lcd_gotoxy(16,1);
+          //lcd_putc(' ');
          if (!(usb_configured()))
          {
-            //lcd_gotoxy(16,1);
-            //lcd_putc('U');
+            lcd_gotoxy(16,1);
+            lcd_putc('U');
             usb_init();
             while (!usb_configured()) ;//  wait
             _delay_ms(100);
@@ -2439,13 +2448,15 @@ int main (void)
          
       }
       
-		if (loopcount0==0x3FFF)
-		{
+      if (loopcount0==0x3FFF) // LCD-Output
+      {
          
   
-			loopcount0=0;
-			loopcount1+=1;
-			LOOPLEDPORT ^=(1<<LOOPLED);
+         loopcount0=0;
+         loopcount1+=1;
+         
+         LOOPLEDPORT ^=(1<<LOOPLED);
+         
          
          lcd_gotoxy(16,0);
          lcd_puts("SC");
@@ -2477,7 +2488,7 @@ int main (void)
           */
          if (loopcount1 && (loopcount1%2 == 0)) // nach etwas Zeit soll Master die Settings lesen
          {
-            
+            BLINK_PORT ^= (1<<BLINK_HI_PIN);
             if (masterstatus & (1<<SUB_READ_EEPROM_BIT)) // beim Start ee lesen
             {
                masterstatus &= ~(1<<SUB_READ_EEPROM_BIT);
@@ -2601,9 +2612,9 @@ int main (void)
 
          
          
-			if ((manuellcounter > MANUELLTIMEOUT) )
-			{
-				{
+         if ((manuellcounter > MANUELLTIMEOUT) )
+         {
+            {
                programmstatus &= ~(1<< LEDON);
                display_set_LED(0);
                manuellcounter=1;
@@ -2635,9 +2646,9 @@ int main (void)
                  lcd_putc(' ');
 
               }
-				}
-				//
-			}
+            }
+            //
+         }
 
 // MARK:  USB send
          // neue Daten abschicken
@@ -2660,7 +2671,7 @@ int main (void)
          }
       } // if loopcount0
       
-      /**	ADC	***********************/
+      /**   ADC   ***********************/
       
       if (adc_counter > 0x000F) // ADC starten
       {
@@ -2797,9 +2808,7 @@ int main (void)
             */
          }
          // MARK:  SPI_RAM
-         {//a
-            
-            
+         {//
             substatus &= ~(1<<UHR_OK);
             
             substatus &= ~(1<< TASTATUR_READ);
@@ -3094,9 +3103,9 @@ int main (void)
 
       }
       
-      /**	END ADC	***********************/
+      /**   END ADC   ***********************/
       
-      /**	Begin USB-routinen	***********************/
+      /**   Begin USB-routinen   ***********************/
 // MARK USB read
       // Start USB
       //OSZI_D_LO;
@@ -3110,7 +3119,7 @@ int main (void)
          //OSZI_D_LO;
          cli();
          uint8_t code = 0x00;
-         usbstatus |= (1<<USB_RECV);
+         usbstatus |= (1<<USB_RECV); // nichr vrwendet
          {
             code = buffer[0];
             
@@ -3391,7 +3400,7 @@ int main (void)
                   usb_rawhid_send((void*)sendbuffer, 50);
                   lcd_clr_line(0);
                   lcd_gotoxy(10,0);
-                  lcd_putc('F');
+                  lcd_putc('E');
                   lcd_putc('7');
                   lcd_putc(' ');
                   lcd_putint1(modelindex);
@@ -3942,27 +3951,27 @@ int main (void)
          
        //OSZI_D_HI;
          
-		} // r>0, neue Daten
+      } // r>0, neue Daten
       else
       {
          //OSZI_B_LO;
       }
       
-      /**	End USB-routinen	***********************/
- 		
-		/* **** rx_buffer abfragen **************** */
-		
+      /**   End USB-routinen   ***********************/
+       
+      /* **** rx_buffer abfragen **************** */
+      
  // MARK:  Tasten
-		//	Daten von USB vorhanden
+      //   Daten von USB vorhanden
       // rxdata
-		
-		//lcd_gotoxy(16,0);
+      
+      //lcd_gotoxy(16,0);
       //lcd_putint(StepCounterA & 0x00FF);
 
-		// MARK:  Tastatur ADC
-		/* ******************** */
-		//		initADC(TASTATURPIN);
-		//		Tastenwert=(uint8_t)(readKanal(TASTATURPIN)>>2);
+      // MARK:  Tastatur ADC
+      /* ******************** */
+      //      initADC(TASTATURPIN);
+      //      Tastenwert=(uint8_t)(readKanal(TASTATURPIN)>>2);
       
      if ((substatus & (1<< TASTATUR_READ))) // 8 MHz
          
@@ -4036,10 +4045,10 @@ int main (void)
             
             
             /*
-             0:											1	2	3
-             1:											4	5	6
-             2:											7	8	9
-             3:											x	0	y
+             0:                                 1   2   3
+             1:                                 4   5   6
+             2:                                 7   8   9
+             3:                                 x   0   y
              4:
              5: enter
              6:
@@ -5280,7 +5289,7 @@ int main (void)
                           // lcd_gotoxy(14,2);
                           // lcd_puts("*H5*");
                            
-               				//lcd_putint2(startcounter);
+                           //lcd_putint2(startcounter);
                            //lcd_putc('*');
                            if ((startcounter == 0) && (manuellcounter)) // Settings sind nicht aktiv
                            {
@@ -6380,7 +6389,8 @@ int main (void)
                         {
                           // lcd_gotoxy(14,2);
                           // lcd_puts("*H8*");
-     
+                           break; // trimmscreen ev. korrupt
+                           
                            if (manuellcounter)
                            {
                               display_clear();
@@ -7052,10 +7062,10 @@ int main (void)
          if (Trimmtastenwert>5)
          {
             /*
-             0:											1	2	3
-             1:											4	5	6
-             2:											7	8	9
-             3:											x	0	y
+             0:                                 1   2   3
+             1:                                 4   5   6
+             2:                                 7   8   9
+             3:                                 x   0   y
              4:
              5: enter
              6:
@@ -7173,16 +7183,16 @@ int main (void)
          }// if Trimmtastenwert
          //OSZI_B_HI;
       }
-		Tastenwert=0;
-		
+      Tastenwert=0;
       
       
-		//lcd_gotoxy(3,1);
-		//lcd_putint(Tastenwert);
       
-		//OSZI_B_HI;
+      //lcd_gotoxy(3,1);
+      //lcd_putint(Tastenwert);
       
-	}//while
+      //OSZI_B_HI;
+      
+   }//while
    //free (sendbuffer);
    
    // return 0;

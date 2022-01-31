@@ -43,6 +43,12 @@
 #define E_TASTE1             7 // Analog Comparator
 */
 
+#define BLINK_DDR               DDRA
+#define BLINK_PORT              PORTA
+#define BLINK_LO_PIN            3
+#define BLINK_HI_PIN            7
+
+
 #define OFF_DDR               DDRE
 #define OFF_PORT              PORTE
 #define OFF_PIN               PINE
@@ -191,7 +197,7 @@
 #define TASTE_R_M    245
 
 
-#define MANUELLTIMEOUT	16 // Loopled-counts bis Manuell zurueckgesetzt wird. 50: ca. 30s
+#define MANUELLTIMEOUT	32 // Loopled-counts bis Manuell zurueckgesetzt wird. 50: ca. 30s
 
 #define ADCTIMEOUT   250
 
