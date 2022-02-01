@@ -2462,7 +2462,7 @@ int main (void)
          lcd_puts("SC");
          lcd_puthex(curr_screen);
         
-         lcd_putc('*');
+         //lcd_putc('*');
          lcd_gotoxy(0,1);
          lcd_putint(manuellcounter);
           
@@ -2476,8 +2476,22 @@ int main (void)
          lcd_puthex(programmstatus);
          lcd_putc(' ');
  
-         lcd_gotoxy(6,2);
-         lcd_putint12(tastaturcounter);
+         lcd_gotoxy(0,2);
+         uint16_t Pot0 = (sendbuffer[7+1] << 8) | sendbuffer[7];
+         lcd_putint12(Pot0);
+         //lcd_putint(sendbuffer[1+1]);
+         //lcd_putc(' ');
+         //lcd_putint(sendbuffer[1]);
+         lcd_putc(' ');
+         uint16_t Pot1 = (sendbuffer[3+1] << 8) | sendbuffer[3];
+         lcd_putint12(Pot1);
+         lcd_putc(' ');
+         uint16_t Pot2 = (sendbuffer[5+1] << 8) | sendbuffer[5];
+         lcd_putint12(Pot2);
+
+         
+         //lcd_gotoxy(6,2);
+         //lcd_putint12(tastaturcounter);
          /*
          
          lcd_gotoxy(0,3);
@@ -2837,6 +2851,20 @@ int main (void)
                sendbuffer[1+2*i+1] = spiram_rdbyte(2*i+1); // HI
                RAM_CS_HI;
               }
+            lcd_gotoxy(0,2);
+            //lcd_putint(sendbuffer[1]);
+            //lcd_putint(sendbuffer[2]);
+           // uint16_t Pot1 = (sendbuffer[3+1] << 8) | sendbuffer[3];
+           //lcd_putint12(Pot1);
+  
+            
+             
+             
+
+         //   uint16_t Pot2 = (sendbuffer[5+1] << 8) | sendbuffer[5];
+         //   lcd_putint12(Pot2);
+             
+            
             
             // Testdaten lesen
             
@@ -4092,7 +4120,7 @@ int main (void)
             if (Tastenindex > 0)
             {
                //lcd_gotoxy(6,0);
-              // lcd_putint2(Tastenindex);
+               //lcd_putint2(Tastenindex);
                //lcd_putc(' ');
                Taste = Tastenindex;
                tastentransfer = Tastenwert;
@@ -4103,7 +4131,7 @@ int main (void)
                TastaturCount=0;
                Tastenwert=0x00;
  
-               lcd_gotoxy(18,1);
+               lcd_gotoxy(10,0);
                lcd_putint2(Taste);
                programmstatus |= (1<<UPDATESCREEN);
                
@@ -5381,7 +5409,7 @@ int main (void)
                                  //  In der Loop wird damit
                                  //    task_out |= (1<< RAM_SEND_DOGM_TASK);
                                  //    task_outdata = curr_model;//modelindex;
-                                 // ausgeloest.
+                                 //  ausgeloest.
 
                               }break;
                                  

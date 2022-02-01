@@ -929,7 +929,7 @@ void setzuteilungscreen(void)
    
 
 
-}// setzuteilungscreen
+}// end setzuteilungscreen
 
 void setsavescreen(void)
 {
@@ -974,7 +974,7 @@ void setsavescreen(void)
 
   
    
-}
+} // end setsavescreen
 
 void settrimmscreen(void)
 {

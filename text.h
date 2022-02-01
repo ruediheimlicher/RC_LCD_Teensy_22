@@ -125,8 +125,8 @@ PGM_P const AusgangTable[] PROGMEM = {ausgang0, ausgang1, ausgang2, ausgang3, au
 // Zuteilung an device auf dem Sender
 const char device0[] PROGMEM = "L-H\0"; // Pitch links horizontal
 const char device1[] PROGMEM = "L-V\0"; // Pitch links vertikal
-const char device2[] PROGMEM = "R-H\0";
-const char device3[] PROGMEM = "R-V\0";
+const char device2[] PROGMEM = "R-H\0"; // Pitch rechts horizontal
+const char device3[] PROGMEM = "R-V\0"; // Pitch rechts vertikal
 const char device4[] PROGMEM = "S-L\0"; // Schieber links
 const char device5[] PROGMEM = "S-R\0"; // Schieber rechts
 const char device6[] PROGMEM = "Sch\0"; // Schalter
