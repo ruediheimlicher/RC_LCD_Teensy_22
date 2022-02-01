@@ -5406,7 +5406,7 @@ int main (void)
                            
                         case SAVESCREEN:
                         {
-                        #pragma mark  5 SAVESCREEN
+                        #pragma mark  5 SAVESCREEN 
                           switch (curr_cursorspalte)
                            {
                               case 0: // sichern
