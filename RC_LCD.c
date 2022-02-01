@@ -2470,9 +2470,16 @@ int main (void)
          lcd_putc(' ');
          lcd_putint(startcounter);
          
+         /*
          lcd_putc(' ');
          lcd_putint(settingstartcounter);
-         lcd_putc(' ');
+          */
+         
+         lcd_putc('E');
+         lcd_puthex(eepromsavestatus);
+
+         lcd_putc('P');
+          
          lcd_puthex(programmstatus);
          lcd_putc(' ');
  
@@ -4019,9 +4026,9 @@ int main (void)
          
          if (loopcount1%2==0)
          {
-           // lcd_gotoxy(0,2);
-          //lcd_putint(Tastenwert);
-           // lcd_putc(' ');
+           //lcd_gotoxy(18,1);
+          //lcd_putint2(Taste);
+           //lcd_putc(' ');
          }
  // MARK:  Tastatur
          //
@@ -4123,6 +4130,9 @@ int main (void)
                //lcd_putint2(Tastenindex);
                //lcd_putc(' ');
                Taste = Tastenindex;
+               lcd_gotoxy(10,0);
+               
+               lcd_putint2(Taste);
                tastentransfer = Tastenwert;
                prellcounter=0;
                
@@ -4131,8 +4141,7 @@ int main (void)
                TastaturCount=0;
                Tastenwert=0x00;
  
-               lcd_gotoxy(10,0);
-               lcd_putint2(Taste);
+               
                programmstatus |= (1<<UPDATESCREEN);
                
                switch (Taste)
@@ -4179,7 +4188,7 @@ int main (void)
  
                         }break;
   
-                        case TRIMMSCREEN: // Trimmung
+                        case TRIMMSCREEN: // Trimmung // Taste 2
                         {
                            if (blink_cursorpos == 0xFFFF && manuellcounter) // Kein Blinken
                            {
@@ -4283,7 +4292,7 @@ int main (void)
                            
                            
                            
-                        case SETTINGSCREEN: // Settings
+                        case SETTINGSCREEN: // Settings  // Taste 2
                         {
                            if (blink_cursorpos == 0xFFFF && manuellcounter) // Kein Blinken
                            {
@@ -4362,7 +4371,7 @@ int main (void)
                            }
                         }break;
                            
-                        case KANALSCREEN: // Kanalsettings
+                        case KANALSCREEN: // Kanalsettings // Taste 2
                         {
                            /*
                             lcd_gotoxy(5,1);
@@ -4539,7 +4548,7 @@ int main (void)
                            } // if manuellcounter
                         }break; // canalscreen
                            
-                        case MIXSCREEN:
+                        case MIXSCREEN: // Taste 2
                         {
                            if (blink_cursorpos == 0xFFFF && manuellcounter) // Kein Blinken
                            {
@@ -4606,7 +4615,7 @@ int main (void)
                         }break; // mixscreen
                            
                            
-                        case ZUTEILUNGSCREEN:
+                        case ZUTEILUNGSCREEN: // Taste 2
                         {
                            if (blink_cursorpos == 0xFFFF && manuellcounter) // Kein Blinken
                            {
@@ -6152,9 +6161,9 @@ int main (void)
                                  startcounter=0;
                                  
                                  
-                                 curr_screen=SAVESCREEN;
+                                 curr_screen=HOMESCREEN;
                                  //setsavescreen();
-                                 
+                                 sethomescreen();
                                  
                                  manuellcounter=0;
                               }
@@ -7050,6 +7059,19 @@ int main (void)
                         stopminute=0;
                         
                         manuellcounter=0; // timeout zuruecksetzen
+                     
+                        display_clear();
+                        setsavescreen();
+                        //lcd_putc('E');
+                        curr_screen = SAVESCREEN;
+                        curr_cursorspalte=0;
+                        curr_cursorzeile=0;
+                        last_cursorspalte=0;
+                        last_cursorzeile=0;
+                        blink_cursorpos=0xFFFF;
+                        
+                        manuellcounter = 1;
+
                      }
                      
                   }break;
