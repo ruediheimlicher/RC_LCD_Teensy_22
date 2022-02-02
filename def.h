@@ -199,7 +199,7 @@
 
 #define MANUELLTIMEOUT	32 // Loopled-counts bis Manuell zurueckgesetzt wird. 50: ca. 30s
 
-#define ADCTIMEOUT   250
+#define ADCTIMEOUT   50
 
 //#define MITTE_TASK         0x01 // Mitte lesen
 //#define KANAL_TASK         0x02 // Level und Expo lesen

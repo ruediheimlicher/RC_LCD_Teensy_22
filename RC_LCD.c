@@ -1793,6 +1793,7 @@ void read_Ext_EEPROM_Funktion(void)
 // MARK: writeSettings
 void write_Ext_EEPROM_Settings(void)
 {
+
    // Halt einschalten
    masterstatus |= (1<<HALT_BIT); // Halt-Bit aktiviert Task bei ausgeschaltetem Slave
    MASTER_PORT &= ~(1<<SUB_BUSY_PIN);
@@ -2365,11 +2366,14 @@ int main (void)
           //lcd_putc(' ');
          if (!(usb_configured()))
          {
-            lcd_gotoxy(16,1);
-            lcd_putc('U');
+            //lcd_gotoxy(16,1);
+            //lcd_putc('U');
             usb_init();
             while (!usb_configured()) ;//  wait
             _delay_ms(100);
+            //lcd_gotoxy(16,1);
+            //lcd_putc(' ');
+
          }
        }
       else if (!(USB_PIN & (1<<USB_DETECT_PIN)))
@@ -2450,14 +2454,15 @@ int main (void)
       
       if (loopcount0==0x3FFF) // LCD-Output
       {
-         
+       //  substatus |= (1<< TASTATUR_READ);
   
          loopcount0=0;
          loopcount1+=1;
          
          LOOPLEDPORT ^=(1<<LOOPLED);
          
-         
+         //lcd_gotoxy(18,1);
+         //lcd_putint2(Taste);
          lcd_gotoxy(16,0);
          lcd_puts("SC");
          lcd_puthex(curr_screen);
@@ -2474,15 +2479,17 @@ int main (void)
          lcd_putc(' ');
          lcd_putint(settingstartcounter);
           */
-         
+        
+
+         lcd_putc(' ');
          lcd_putc('E');
          lcd_puthex(eepromsavestatus);
 
          lcd_putc('P');
-          
          lcd_puthex(programmstatus);
          lcd_putc(' ');
  
+/*         
          lcd_gotoxy(0,2);
          uint16_t Pot0 = (sendbuffer[7+1] << 8) | sendbuffer[7];
          lcd_putint12(Pot0);
@@ -2495,12 +2502,13 @@ int main (void)
          lcd_putc(' ');
          uint16_t Pot2 = (sendbuffer[5+1] << 8) | sendbuffer[5];
          lcd_putint12(Pot2);
-
-         
+*/         
+         lcd_gotoxy(0,3);
+         lcd_puthex(substatus);
          //lcd_gotoxy(6,2);
          //lcd_putint12(tastaturcounter);
          /*
-         
+
          lcd_gotoxy(0,3);
          lcd_putint12(tastenbitstatus );
          lcd_putc('*');
@@ -2557,6 +2565,7 @@ int main (void)
                else
                {
                   
+                  /*
                   lcd_gotoxy(0,1);
                   lcd_puthex(sendbuffer[32]);
                   lcd_putc(' ');
@@ -2566,7 +2575,7 @@ int main (void)
                   lcd_putc(' ');
                   lcd_puthex(sendbuffer[35]);
                   lcd_putc(' ');
-                  
+                  */
                   
                   /*
                   
@@ -2741,7 +2750,7 @@ int main (void)
       
 
       
-      if ((masterstatus & (1<<SUB_TASK_BIT) ) )//|| (masterstatus & (1<< HALT_BIT)))// SPI starten, in PCINT0 gesetzt
+      if ((masterstatus & (1<<SUB_TASK_BIT) ) )//|| (masterstatus & (1<< HALT_BIT)))// SPI starten, in PCINT0 gesetzt, Auftrag vom A8
       {
           if (masterstatus & (1<< HALT_BIT)) // SUB_TASK_BIT nicht zuruecksetzen
          {
@@ -3859,6 +3868,7 @@ int main (void)
                         uint8_t mixwert = buffer[datastartbyte + 2*changeposition];
                         errcount += eeprombyteschreiben(0xFB,fixstartadresse + MIX_OFFSET + 2*mixing,mixwert);
                         
+                        // usb.daten schreiben
                         sendbuffer[EE_PARTBREITE + 2*mixing] = mixwert;
                         sendbuffer[EE_PARTBREITE + 16 + 2*mixing] = (fixstartadresse + MIX_OFFSET + writeposition)&0x00FF;
                         sendbuffer[EE_PARTBREITE + 16 + 2*mixing+1] = ((fixstartadresse + MIX_OFFSET + writeposition)&0xFF00)>>8;
@@ -4008,7 +4018,7 @@ int main (void)
       //      initADC(TASTATURPIN);
       //      Tastenwert=(uint8_t)(readKanal(TASTATURPIN)>>2);
       
-     if ((substatus & (1<< TASTATUR_READ))) // 8 MHz
+//     if ((substatus & (1<< TASTATUR_READ))) // 8 MHz
          
       {
          adcswitch++;
@@ -4034,7 +4044,9 @@ int main (void)
          //
          if (Tastenwert>5)
          {
-            
+            lcd_gotoxy(18,1);
+            lcd_putint2(Taste);
+           
             Tastenwertdiff = Tastenwert - lastTastenwert;
             if (Tastenwert > lastTastenwert)
             {
@@ -4130,9 +4142,9 @@ int main (void)
                //lcd_putint2(Tastenindex);
                //lcd_putc(' ');
                Taste = Tastenindex;
-               lcd_gotoxy(10,0);
+               //lcd_gotoxy(10,0);
                
-               lcd_putint2(Taste);
+               //lcd_putint2(Taste);
                tastentransfer = Tastenwert;
                prellcounter=0;
                
